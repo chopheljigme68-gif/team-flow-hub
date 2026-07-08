@@ -6,6 +6,26 @@ const { pool } = require("./pool");
 async function main() {
   const schemaPath = path.join(__dirname, "..", "db", "schema.sql");
   const sql = fs.readFileSync(schemaPath, "utf-8");
+
+  // Ground truth: show exactly what the database looks like right now,
+  // before touching anything. Removes all guesswork if something fails.
+  try {
+    const cols = await pool.query(
+      `SELECT table_name, column_name FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name IN ('users', 'workspace_members', 'tasks', 'projects')
+       ORDER BY table_name, ordinal_position`
+    );
+    console.log("--- current columns before migration ---");
+    let lastTable = null;
+    for (const row of cols.rows) {
+      if (row.table_name !== lastTable) { console.log(`\n${row.table_name}:`); lastTable = row.table_name; }
+      console.log(`  ${row.column_name}`);
+    }
+    console.log("-----------------------------------------\n");
+  } catch (err) {
+    console.log("(could not inspect existing schema:", err.message, ")");
+  }
+
   console.log("Applying schema.sql...");
 
   // Run on a single dedicated connection with an explicit transaction.

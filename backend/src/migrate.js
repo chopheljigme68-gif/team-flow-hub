@@ -24,6 +24,15 @@ async function main() {
     console.log("✅ Schema applied.");
   } catch (err) {
     await client.query("ROLLBACK");
+    console.error("--- full Postgres error details ---");
+    console.error("message:", err.message);
+    console.error("detail:", err.detail);
+    console.error("hint:", err.hint);
+    console.error("where:", err.where); // pinpoints the exact line inside a DO block, if that's where it failed
+    console.error("position:", err.position);
+    console.error("schema/table/column:", err.schema, err.table, err.column);
+    console.error("constraint:", err.constraint);
+    console.error("------------------------------------");
     if (err.position) {
       const charPos = parseInt(err.position, 10);
       const upToError = sql.slice(0, charPos);

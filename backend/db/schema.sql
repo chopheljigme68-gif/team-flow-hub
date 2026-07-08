@@ -48,7 +48,7 @@ DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
-    WHERE table_name = 'workspace_members' AND column_name = 'is_lead'
+    WHERE table_schema = 'public' AND table_name = 'workspace_members' AND column_name = 'is_lead'
   ) THEN
     EXECUTE 'CREATE UNIQUE INDEX IF NOT EXISTS one_lead_per_workspace ON workspace_members (workspace_id) WHERE is_lead = true';
   END IF;
@@ -224,7 +224,7 @@ DECLARE
 BEGIN
   SELECT EXISTS (
     SELECT 1 FROM information_schema.columns
-    WHERE table_name = 'users' AND column_name = 'role'
+    WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'role'
   ) INTO has_legacy_role;
 
   IF has_legacy_role THEN
@@ -240,8 +240,8 @@ BEGIN
       -- Only reference is_lead on either side if it's actually still there —
       -- a DB that's been migrated before (even partially) may already have
       -- dropped one side of this without the other.
-      SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'workspace_members' AND column_name = 'is_lead') INTO has_wm_is_lead;
-      SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'is_lead') INTO has_users_is_lead;
+      SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'workspace_members' AND column_name = 'is_lead') INTO has_wm_is_lead;
+      SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'is_lead') INTO has_users_is_lead;
 
       -- Dynamic SQL here on purpose: these statements reference users.role /
       -- users.is_lead, columns that don't exist in every deployment's
@@ -296,7 +296,7 @@ DECLARE
 BEGIN
   SELECT EXISTS (
     SELECT 1 FROM information_schema.columns
-    WHERE table_name = 'workspace_members' AND column_name = 'is_lead'
+    WHERE table_schema = 'public' AND table_name = 'workspace_members' AND column_name = 'is_lead'
   ) INTO has_is_lead;
 
   IF has_is_lead THEN
